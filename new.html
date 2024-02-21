@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <style>
-  .bar { fill: steelblue; }
+.bar { fill: steelblue; }
+.bar2 { fill: rgb(180, 114, 70); }
 </style>
 <body>
 
@@ -13,13 +14,14 @@ var margin = {top: 50, right: 50, bottom: 50, left: 50},
     width = 2000 - margin.left - margin.right,
     height = 2000 - margin.top - margin.bottom, // Making height equal to width for a more centered square area
     innerRadius = 200,
-    outerRadius = (Math.min(width, height) / 2 +100); // The outerRadius should be half of the width or height, whichever is smaller
+    outerRadius = Math.min(width, height) / 2 +100; // The outerRadius should be half of the width or height, whichever is smaller
 
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
     .attr("transform", "translate(" + (width / 2 + margin.left) + "," + (height / 2 + margin.top) + ")");
+
 
 d3.csv("new_data.csv").then(function(data) {
   var years = Object.keys(data[0]).slice(1); // Exclude the 'Country Name' column
@@ -49,83 +51,144 @@ d3.csv("new_data.csv").then(function(data) {
   });
 
   function updateGraph() {
-    selectedYear = select.node().value; // Update selected year from dropdown
+  selectedYear = select.node().value; // Update selected year from dropdown
 
-    var selectedCountries = [];
-    d3.selectAll("input[name='countryCheckbox']:checked").each(function() {
-      selectedCountries.push(this.value);
+  var colorScale = d3.scaleSequentialLog(t => d3.interpolatePuBuGn(t))  // ... (the rest of your code above remains unchanged)
+
+  var selectedCountries = [];
+  d3.selectAll("input[name='countryCheckbox']:checked").each(function() {
+    selectedCountries.push(this.value);
+  });
+
+  var filteredData = data.filter(d => selectedCountries.includes(d['Country Name']) && +d[selectedYear] != 0)
+    .map(d => ({
+      country: d['Country Name'],
+      value: +d[selectedYear]
+    }));
+
+  // Sort data by value descending
+  filteredData.sort((a, b) => b.value - a.value);
+
+  // Determine the minimum and maximum values after sorting
+  var minValue = filteredData[filteredData.length - 1].value;
+  var maxValue = filteredData[0].value;
+
+  var numBars = filteredData.length;
+
+  var x1 = d3.scaleBand()
+    .range([0, 2 * Math.PI])
+    .align(0)
+    .padding(0.1)
+    .domain(filteredData.map(function(d) { return d.country; }));
+
+  var y1 = d3.scaleRadial()
+    .range([145, 180])
+    .domain([0, maxValue]);
+
+    filteredData.sort((a, b) => d3.ascending(a.value, b.value));
+    
+  var innerRadius2 = 160;
+    
+  var arc2 = d3.arc()
+    .innerRadius(innerRadius2)
+    .outerRadius(d =>y1(0.0005)) // Use max to prevent negative values from creating inner radius bars
+    .startAngle(d =>x1(d.country))
+    .endAngle(d =>x1(d.country) +x1.bandwidth()) // Use the bandwidth for the bar width
+    .padAngle(0.01)
+    .padRadius(innerRadius2);
+
+  var x = d3.scaleBand()
+    .range([0, 2 * Math.PI])
+    .align(0)
+    .padding(0.1)
+    .domain(filteredData.map(function(d) { return d.country; }));
+
+  var y = d3.scaleRadial()
+    .range([innerRadius, outerRadius])
+    .domain([0, maxValue]);
+  // Sort data by value ascending to ensure proper layering
+  filteredData.sort((a, b) => d3.ascending(a.value, b.value));
+
+  var arc = d3.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(d => y(Math.max(d.value, 0))) // Use max to prevent negative values from creating inner radius bars
+    .startAngle(d => x(d.country))
+    .endAngle(d => x(d.country) + x.bandwidth()) // Use the bandwidth for the bar width
+    .padAngle(0.01)
+    .padRadius(innerRadius);
+
+    // bar chart with varying size
+  svg.selectAll(".bar")
+    .data(filteredData)
+    .enter()
+    .append("path")
+    .attr("class", "bar")
+    .attr("d", arc)
+    .attr("fill", "#69b3a2");
+
+    // bar chart with varying colors
+  svg.selectAll(".bar2")
+    .data(filteredData)
+    .enter()
+    .append("path")
+    .attr("class", "bar2")
+    .attr("d", arc2)
+    .style("fill", function(d){
+        console.log("Data value: " + d.value + ", Color: " + colorScale(d.value)); // Log the data value and corresponding color
+        return colorScale(d.value);
     });
+    
 
-    var filteredData = data.filter(d => selectedCountries.includes(d['Country Name']) && +d[selectedYear] != 0)
-      .map(d => ({
-        country: d['Country Name'],
-        value: +d[selectedYear]
-      }));
 
-    // Sort data by value descending
-    filteredData.sort((a, b) => b.value - a.value);
+  // Remove old labels
+  svg.selectAll("text").remove();
 
-    // Determine the minimum and maximum values after sorting
-    var minValue = filteredData[filteredData.length - 1].value;
-    var maxValue = filteredData[0].value;
+  // Append the labels
+  svg.selectAll("text")
+    .data(filteredData)
+    .enter()
+    .append("text")
+    .text(function(d) { return d.country; })
+    .attr("x", function(d) { return y(Math.max(d.value, 0)) * Math.cos(x(d.country) + x.bandwidth() / 2 - Math.PI / 2); })
+    .attr("y", function(d) { return y(Math.max(d.value, 0)) * Math.sin(x(d.country) + x.bandwidth() / 2 - Math.PI / 2); })
+    .attr("text-anchor", function(d) {
+        return (x(d.country) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "end" : "start";
+    })
+    .attr("transform", function(d) {
+        var angle = (x(d.country) + x.bandwidth() / 2) * 180 / Math.PI - 90;
+        return "rotate(" + angle + "," + y(Math.max(d.value, 0)) * Math.cos(x(d.country) + x.bandwidth() / 2 - Math.PI / 2) + "," + y(Math.max(d.value, 0)) * Math.sin(x(d.country) + x.bandwidth() / 2 - Math.PI / 2) + ")";
+    })
+    .style("font-size", "11px")
+    .attr("alignment-baseline", "middle");
 
-    var numBars = filteredData.length;
 
-    var x = d3.scaleBand()
-      .range([0, 2 * Math.PI])
-      .align(0)
-      .padding(0.1)
-      .domain(filteredData.map(function(d) { return d.country; }));
+}
 
-    var y = d3.scaleRadial()
-      .range([innerRadius, outerRadius])
-      .domain([0, maxValue]);
+// Initial graph render
+updateGraph();
 
-    var arc = d3.arc()
-      .innerRadius(innerRadius)
-      .outerRadius(d => y(Math.max(d.value, 0))) // Use max to prevent negative values from creating inner radius bars
-      .startAngle(d => x(d.country))
-      .endAngle(d => x(d.country) + x.bandwidth()) // Use the bandwidth for the bar width
-      .padAngle(0.01)
-      .padRadius(innerRadius);
+// ... (the rest of your code below remains unchanged)
 
-    // Update bars with transition
-    svg.selectAll(".bar")
-      .data(filteredData)
-      .join("path")
-      .attr("class", "bar")
-      .transition()
-      .duration(1000)
-      .attr("d", arc)
-      .attr("fill", "#69b3a2");
+  // Append the labels
+  var labelPadding = 10; // Adjust as needed for label spacing from the bars
+  svg.append("g")
+    .selectAll("text")
+    .data(filteredData)
+    .enter()
+    .append("text")
+    .text(function(d) { return d.country; })
+    .attr("x", function(d) { return y1(d.value) * Math.cos(x1(d.country) + x1.bandwidth() / 2 - Math.PI / 2); })
+    .attr("y", function(d) { return y1(d.value) * Math.sin(x1(d.country) + x1.bandwidth() / 2 - Math.PI / 2); })
+    .attr("text-anchor", function(d) {
+        return (x1(d.country) + x1.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "end" : "start";
+    })
+    .attr("transform", function(d) {
+        var angle = (x1(d.country) + x1.bandwidth() / 2) * 180 / Math.PI - 90;
+        return "rotate(" + angle + "," + y1(d.value) * Math.cos(x1(d.country) + x1.bandwidth() / 2 - Math.PI / 2) + "," + y1(d.value) * Math.sin(x1(d.country) + x1.bandwidth() / 2 - Math.PI / 2) + ")";
+    })
+    .style("font-size", "11px")
+    .attr("alignment-baseline", "middle");
 
-    // Remove old labels
-    svg.selectAll("text").remove();
-
-    // Append the labels with transition
-    svg.selectAll("text")
-      .data(filteredData)
-      .enter()
-      .append("text")
-      .text(function(d) { return d.country; })
-      .attr("x", function(d) { return y(Math.max(d.value, 0)) * Math.cos(x(d.country) + x.bandwidth() / 2 - Math.PI / 2); })
-      .attr("y", function(d) { return y(Math.max(d.value, 0)) * Math.sin(x(d.country) + x.bandwidth() / 2 - Math.PI / 2); })
-      .attr("text-anchor", function(d) {
-          return (x(d.country) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "end" : "start";
-      })
-      .attr("transform", function(d) {
-          var angle = (x(d.country) + x.bandwidth() / 2) * 180 / Math.PI - 90;
-          return "rotate(" + angle + "," + y(Math.max(d.value, 0)) * Math.cos(x(d.country) + x.bandwidth() / 2 - Math.PI / 2) + "," + y(Math.max(d.value, 0)) * Math.sin(x(d.country) + x.bandwidth() / 2 - Math.PI / 2) + ")";
-      })
-      .style("font-size", "11px")
-      .attr("alignment-baseline", "middle")
-      .transition()
-      .duration(1000)
-      .attr("opacity", 1); // Add opacity transition
-  }
-
-  // Initial graph render
-  updateGraph();
 
 });
 
