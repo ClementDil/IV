@@ -2,6 +2,14 @@
 <meta charset="utf-8">
 <style>
   .bar { fill: steelblue; }
+  .control-container { position: absolute; top: 10px; }
+  .country-checkbox { display: inline-block; margin-right: 5px; }
+  .country-scroll-menu {
+    max-height: 200px;
+    overflow-y: auto;
+    position: absolute;
+    top: 40px;
+  }
 </style>
 <body>
 
@@ -19,37 +27,41 @@ var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
-    .attr("transform", "translate(" + (width / 2 + margin.left) + "," + (height / 2 + margin.top) + ")");
+    .attr("transform", `translate(${width / 2 + margin.left},${height / 2 + margin.top})`);
 
 d3.csv("new_data.csv").then(function(data) {
   var years = Object.keys(data[0]).slice(1); // Exclude the 'Country Name' column
   var selectedYear = years[0]; // Set initial selected year
 
   // Create year selection dropdown
-  var select = d3.select("body")
-    .append("select")
+  var selectYear = d3.select("body").append("select")
+    .classed("control-container", true)
     .on("change", updateGraph);
 
-  select.selectAll("option")
+  selectYear.selectAll("option")
     .data(years)
     .enter().append("option")
-    .text(function(d) { return d; });
+    .text(d => d);
 
   // Create checkboxes for each country
-  var countrySelectionDiv = d3.select("body").append("div");
+  var selectCountry = d3.select("body").append("div")
+    .classed("control-container", true)
+    .classed("country-scroll-menu", true);
+
   data.forEach(function(d) {
-    countrySelectionDiv.append("input")
+    var checkboxDiv = selectCountry.append("div");
+    checkboxDiv.append("input")
       .attr("type", "checkbox")
+      .attr("class", "country-checkbox")
       .attr("name", "countryCheckbox")
       .attr("value", d['Country Name'])
       .attr("checked", true)
       .on("change", updateGraph);
-    countrySelectionDiv.append("label").text(d['Country Name']);
-    countrySelectionDiv.append("br");
+    checkboxDiv.append("label").text(d['Country Name']);
   });
 
   function updateGraph() {
-    selectedYear = select.node().value; // Update selected year from dropdown
+    selectedYear = selectYear.node().value; // Update selected year from dropdown
 
     var selectedCountries = [];
     d3.selectAll("input[name='countryCheckbox']:checked").each(function() {
@@ -75,7 +87,7 @@ d3.csv("new_data.csv").then(function(data) {
       .range([0, 2 * Math.PI])
       .align(0)
       .padding(0.1)
-      .domain(filteredData.map(function(d) { return d.country; }));
+      .domain(filteredData.map(d => d.country));
 
     var y = d3.scaleRadial()
       .range([innerRadius, outerRadius])
@@ -107,15 +119,13 @@ d3.csv("new_data.csv").then(function(data) {
       .data(filteredData)
       .enter()
       .append("text")
-      .text(function(d) { return d.country; })
-      .attr("x", function(d) { return y(Math.max(d.value, 0)) * Math.cos(x(d.country) + x.bandwidth() / 2 - Math.PI / 2); })
-      .attr("y", function(d) { return y(Math.max(d.value, 0)) * Math.sin(x(d.country) + x.bandwidth() / 2 - Math.PI / 2); })
-      .attr("text-anchor", function(d) {
-          return (x(d.country) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "end" : "start";
-      })
-      .attr("transform", function(d) {
+      .text(d => d.country)
+      .attr("x", d => y(Math.max(d.value, 0)) * Math.cos(x(d.country) + x.bandwidth() / 2 - Math.PI / 2))
+      .attr("y", d => y(Math.max(d.value, 0)) * Math.sin(x(d.country) + x.bandwidth() / 2 - Math.PI / 2))
+      .attr("text-anchor", d => (x(d.country) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "end" : "start")
+      .attr("transform", d => {
           var angle = (x(d.country) + x.bandwidth() / 2) * 180 / Math.PI - 90;
-          return "rotate(" + angle + "," + y(Math.max(d.value, 0)) * Math.cos(x(d.country) + x.bandwidth() / 2 - Math.PI / 2) + "," + y(Math.max(d.value, 0)) * Math.sin(x(d.country) + x.bandwidth() / 2 - Math.PI / 2) + ")";
+          return `rotate(${angle},${y(Math.max(d.value, 0)) * Math.cos(x(d.country) + x.bandwidth() / 2 - Math.PI / 2)},${y(Math.max(d.value, 0)) * Math.sin(x(d.country) + x.bandwidth() / 2 - Math.PI / 2)})`;
       })
       .style("font-size", "11px")
       .attr("alignment-baseline", "middle")
