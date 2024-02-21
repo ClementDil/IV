@@ -5,9 +5,18 @@
 .bar2 { fill: rgb(180, 114, 70); }
 .container {
     position: absolute;
-    top: 20px; /* Adjust as needed */
-    left: 15%; /* Adjust as needed */
+    top: 20px; 
+    left: 15%;
     transform: translateX(-50%);
+    overflow-y: auto; 
+    max-height: 300px; 
+}
+
+.year-container {
+    position: absolute;
+    top: 20px; /* Adjust as needed */
+    left: 30%; /* Adjust as needed */
+    transform: translateX(-25%); /* Adjust as needed */
 }
 </style>
 <body>
@@ -33,11 +42,14 @@ d3.csv("new_data.csv").then(function(data) {
   var years = Object.keys(data[0]).slice(1); // Exclude the 'Country Name' column
   var selectedYear = years[0]; // Set initial selected year
 
-  // Create year selection dropdown
-  var select = d3.select("body")
+  var yearContainer = d3.select("body")
+    .append("div")
+    .classed("year-container", true);
+
+  var select = yearContainer
     .append("select")
-    .classed("container", true) // Apply container class
     .on("change", updateGraph);
+
 
   select.selectAll("option")
     .data(years)
