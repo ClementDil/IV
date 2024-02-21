@@ -59,18 +59,39 @@ d3.csv("new_data.csv").then(function(data) {
   // Create checkboxes for each country
   var countrySelectionDiv = d3.select("body").append("div")
     .classed("container", true);
-  data.forEach(function(d) {
+  var selectAllCheckbox = countrySelectionDiv.append("input")
+    .attr("type", "checkbox")
+    .attr("id", "selectAllCountries")
+    .attr("checked", true) // Initially checked
+    .on("change", function() {
+        var isChecked = this.checked;
+        // Update individual checkboxes
+        d3.selectAll("input[name='countryCheckbox']").each(function() {
+            this.checked = isChecked;
+        });
+        updateGraph(); // Update the graph when selection changes
+    });
+
+countrySelectionDiv.append("label").text("Select All");
+
+// Create checkboxes for each individual country
+data.forEach(function(d) {
     countrySelectionDiv.append("input")
-      .attr("type", "checkbox")
-      .attr("name", "countryCheckbox")
-      .attr("value", d['Country Name'])
-      .attr("checked", true)
-      .on("change", updateGraph);
+        .attr("type", "checkbox")
+        .attr("name", "countryCheckbox")
+        .attr("value", d['Country Name'])
+        .attr("checked", true) // Initially checked
+        .on("change", function() {
+            updateGraph(); // Update the graph when individual checkboxes change
+        });
     countrySelectionDiv.append("label").text(d['Country Name']);
     countrySelectionDiv.append("br");
-  });
+});
 
   function updateGraph() {
+  svg.selectAll(".bar").remove();
+  svg.selectAll(".bar2").remove();
+  svg.selectAll("text").remove();
   selectedYear = select.node().value; // Update selected year from dropdown
 
   var colorScale = d3.scaleSequentialLog(t => d3.interpolatePuBuGn(t))  // ... (the rest of your code above remains unchanged)
