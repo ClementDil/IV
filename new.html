@@ -81,7 +81,7 @@ d3.csv("new_data.csv").then(function(data) {
     .padding(0.1)
     .domain(filteredData.map(function(d) { return d.country; }));
 
-  var y1 = d3.scaleRadial()
+  var y1 = d3.scaleLinear()
     .range([145, 180])
     .domain([0, maxValue]);
 
@@ -103,7 +103,7 @@ d3.csv("new_data.csv").then(function(data) {
     .padding(0.1)
     .domain(filteredData.map(function(d) { return d.country; }));
 
-  var y = d3.scaleRadial()
+  var y = d3.scaleLinear()
     .range([innerRadius, outerRadius])
     .domain([0, maxValue]);
   // Sort data by value ascending to ensure proper layering
