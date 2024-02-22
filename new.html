@@ -88,9 +88,8 @@ data.forEach(function(d) {
     countrySelectionDiv.append("br");
 });
 
-  function updateGraph() {
-  svg.selectAll(".bar").remove();
-  svg.selectAll(".bar2").remove();
+function updateGraph() {
+  svg.selectAll(".bar, .bar2").remove();
   svg.selectAll("text").remove();
   selectedYear = select.node().value; // Update selected year from dropdown
 
@@ -158,14 +157,33 @@ data.forEach(function(d) {
     .padAngle(0.01)
     .padRadius(innerRadius);
 
-    // bar chart with varying size
-  svg.selectAll(".bar")
-    .data(filteredData)
-    .enter()
-    .append("path")
-    .attr("class", "bar")
-    .attr("d", arc)
-    .attr("fill", "#69b3a2");
+    
+    var bars = svg.selectAll(".bar")
+        .data(filteredData)
+        .enter()
+        .append("path")
+        .attr("class", "bar")
+        .attr("d", arc)
+        .attr("fill", "#69b3a2");
+
+    // Apply transition to update bars smoothly
+    bars.transition()
+        .duration(1000)
+        .attrTween("d", function(d) {
+            var interpolate = d3.interpolate(0, d.value);
+            return function(t) {
+                d.value = interpolate(t);
+                return arc(d);
+            };
+        });
+
+    bars.exit().remove();
+
+    //svg.selectAll(".bar")
+        //.style("fill", function(d) {
+            //return colorScale(d.value);
+       // });
+
 
     // bar chart with varying colors
   svg.selectAll(".bar2")
@@ -174,18 +192,15 @@ data.forEach(function(d) {
     .append("path")
     .attr("class", "bar2")
     .attr("d", arc2)
+    .transition()
+    .duration(1000)
     .style("fill", function(d){
         console.log("Data value: " + d.value + ", Color: " + colorScale(d.value)); // Log the data value and corresponding color
         return colorScale(d.value);
     });
-    
+  
 
-
-  // Remove old labels
-  svg.selectAll("text").remove();
-
-  // Append the labels
-  svg.selectAll("text")
+svg.selectAll("text")
     .data(filteredData)
     .enter()
     .append("text")
@@ -200,7 +215,17 @@ data.forEach(function(d) {
         return "rotate(" + angle + "," + y(Math.max(d.value, 0)) * Math.cos(x(d.country) + x.bandwidth() / 2 - Math.PI / 2) + "," + y(Math.max(d.value, 0)) * Math.sin(x(d.country) + x.bandwidth() / 2 - Math.PI / 2) + ")";
     })
     .style("font-size", "11px")
-    .attr("alignment-baseline", "middle");
+    .attr("alignment-baseline", "middle")
+    .style("opacity", 0)
+    .transition()
+    .delay(500)
+    .duration(500)
+    .style("opacity", 1);
+
+
+
+
+
 
 
 }
