@@ -218,8 +218,8 @@ filteredData.forEach(function(d) {
     .transition()
     .duration(1000)
     .style("fill", function(d){
-        console.log("Data value: " + d.value_le + ", Color: " + colorScale(d.value_le)); // Log the data value and corresponding color
-        return colorScale(d.value_le);
+        console.log("Data value: " + d.le + ", Color: " + colorScale(d.le*0.05)); // Log the data value and corresponding color
+        return colorScale(d.le*0.05);
     });
   
     var labelOffset = 55; // Adjust this value to move the labels further out
