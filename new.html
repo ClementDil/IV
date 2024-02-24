@@ -38,9 +38,11 @@ var svg = d3.select("body").append("svg")
     .attr("transform", "translate(" + (width / 2 + margin.left) + "," + (height / 2 + margin.top) + ")");
 
 
-d3.csv("new_data.csv").then(function(data) {
-  var years = Object.keys(data[0]).slice(1); // Exclude the 'Country Name' column
+d3.csv("full-data-comma.csv").then(function(data) {
+  var years = ['2000','2013','2014','2015','2016','2017','2018','2019','2020','2021'];
+  //var years = Object.keys(data[0]).slice(1); // Exclude the 'Country Name' column
   var selectedYear = years[0]; // Set initial selected year
+  console.log(selectedYear);
 
   var yearContainer = d3.select("body")
     .append("div")
@@ -88,6 +90,8 @@ data.forEach(function(d) {
     countrySelectionDiv.append("br");
 });
 
+
+
 function updateGraph() {
   svg.selectAll(".bar, .bar2").remove();
   svg.selectAll("text").remove();
@@ -99,11 +103,13 @@ function updateGraph() {
   d3.selectAll("input[name='countryCheckbox']:checked").each(function() {
     selectedCountries.push(this.value);
   });
-
-  var filteredData = data.filter(d => selectedCountries.includes(d['Country Name']) && +d[selectedYear] != 0)
+  var columnDContent = data.map(row => row.selectedYear+'_wom');
+  var filteredData = data.filter(d => selectedCountries.includes(d['Country Name']) && +d[selectedYear+'_wom'] != -1000)
     .map(d => ({
       country: d['Country Name'],
-      value: +d[selectedYear]
+      value: +d[selectedYear+'_wom'],
+      le: +d[selectedYear+'_le'],
+      gdp: +d[selectedYear+'_gdp']
     }));
 
   // Sort data by value descending
@@ -212,8 +218,8 @@ filteredData.forEach(function(d) {
     .transition()
     .duration(1000)
     .style("fill", function(d){
-        console.log("Data value: " + d.value + ", Color: " + colorScale(d.value)); // Log the data value and corresponding color
-        return colorScale(d.value);
+        console.log("Data value: " + d.value_le + ", Color: " + colorScale(d.value_le)); // Log the data value and corresponding color
+        return colorScale(d.value_le);
     });
   
     var labelOffset = 55; // Adjust this value to move the labels further out
