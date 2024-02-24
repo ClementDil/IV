@@ -28,8 +28,8 @@
 var margin = {top: 50, right: 50, bottom: 50, left: 50},
     width = 2000 - margin.left - margin.right,
     height = 2000 - margin.top - margin.bottom, // Making height equal to width for a more centered square area
-    innerRadius = 200,
-    outerRadius = Math.min(width, height) / 2 +100; // The outerRadius should be half of the width or height, whichever is smaller
+    innerRadius = 300,
+    outerRadius = Math.min(width, height) / 3 ; // The outerRadius should be half of the width or height, whichever is smaller
 
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -109,6 +109,20 @@ function updateGraph() {
   // Sort data by value descending
   filteredData.sort((a, b) => b.value - a.value);
 
+  // Calculate mean and standard deviation
+var mean = d3.mean(filteredData, function(d) { return d.value; });
+var std = d3.deviation(filteredData, function(d) { return d.value; });
+
+// Scale data using z-score normalization
+filteredData.forEach(function(d) {
+    d.normalizedValue = (d.value - mean) / std;
+});
+
+// Use normalizedValue for visualization
+
+
+
+  
   // Determine the minimum and maximum values after sorting
   var minValue = filteredData[filteredData.length - 1].value;
   var maxValue = filteredData[0].value;
@@ -164,7 +178,10 @@ function updateGraph() {
         .append("path")
         .attr("class", "bar")
         .attr("d", arc)
-        .attr("fill", "#69b3a2");
+        .style("fill", function(d){
+        console.log("Data value: " + d.value + ", Color: " + colorScale(d.value)); // Log the data value and corresponding color
+        return colorScale(d.value);
+    });
 
     // Apply transition to update bars smoothly
     bars.transition()
@@ -199,20 +216,27 @@ function updateGraph() {
         return colorScale(d.value);
     });
   
+    var labelOffset = 55; // Adjust this value to move the labels further out
 
 svg.selectAll("text")
-    .data(filteredData)
+    .data(filteredData) 
     .enter()
     .append("text")
     .text(function(d) { return d.country; })
-    .attr("x", function(d) { return y(Math.max(d.value, 0)) * Math.cos(x(d.country) + x.bandwidth() / 2 - Math.PI / 2); })
-    .attr("y", function(d) { return y(Math.max(d.value, 0)) * Math.sin(x(d.country) + x.bandwidth() / 2 - Math.PI / 2); })
+    .attr("x", function(d) { 
+        return (y(Math.max(d.value, 0)) + labelOffset) * Math.cos(x(d.country) + x.bandwidth() / 2 - Math.PI / 2); 
+    })
+    .attr("y", function(d) { 
+        return (y(Math.max(d.value, 0)) + labelOffset) * Math.sin(x(d.country) + x.bandwidth() / 2 - Math.PI / 2); 
+    })
     .attr("text-anchor", function(d) {
         return (x(d.country) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "end" : "start";
     })
     .attr("transform", function(d) {
         var angle = (x(d.country) + x.bandwidth() / 2) * 180 / Math.PI - 90;
-        return "rotate(" + angle + "," + y(Math.max(d.value, 0)) * Math.cos(x(d.country) + x.bandwidth() / 2 - Math.PI / 2) + "," + y(Math.max(d.value, 0)) * Math.sin(x(d.country) + x.bandwidth() / 2 - Math.PI / 2) + ")";
+        return "rotate(" + angle + "," + 
+            ((y(Math.max(d.value, 0)) + labelOffset) * Math.cos(x(d.country) + x.bandwidth() / 2 - Math.PI / 2)) + "," + 
+            ((y(Math.max(d.value, 0)) + labelOffset) * Math.sin(x(d.country) + x.bandwidth() / 2 - Math.PI / 2)) + ")";
     })
     .style("font-size", "11px")
     .attr("alignment-baseline", "middle")
@@ -221,6 +245,7 @@ svg.selectAll("text")
     .delay(500)
     .duration(500)
     .style("opacity", 1);
+
 
 
 
