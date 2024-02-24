@@ -21,6 +21,9 @@
 </style>
 <body>
 
+      <div id="tooltip" style="position: absolute; visibility: hidden; background-color: #fff; border: 1px solid #ddd; padding: 5px; border-radius: 3px; pointer-events: none;"></div>
+
+
 <!-- Load the d3.js library -->
 <script src="https://d3js.org/d3.v6.min.js"></script>
 <script>
@@ -202,10 +205,18 @@ filteredData.forEach(function(d) {
 
     bars.exit().remove();
 
-    //svg.selectAll(".bar")
-        //.style("fill", function(d) {
-            //return colorScale(d.value);
-       // });
+       var tooltip = d3.select("#tooltip");
+
+bars.on("mouseover", function(event, d) {
+        tooltip.style("visibility", "visible")
+            .text("Value: " + d.value); // Set the text of the tooltip as the data value
+    })
+    .on("mousemove", function(event, d) {
+        tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");
+    })
+    .on("mouseout", function() {
+        tooltip.style("visibility", "hidden");
+    });
 
 
     // bar chart with varying colors
