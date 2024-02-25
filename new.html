@@ -14,9 +14,9 @@
 
 .year-container {
     position: absolute;
-    top: 20px; /* Adjust as needed */
-    left: 30%; /* Adjust as needed */
-    transform: translateX(-25%); /* Adjust as needed */
+    top: 20px; 
+    left: 30%; 
+    transform: translateX(-25%); 
 }
 </style>
 <body>
@@ -30,9 +30,9 @@
 
 var margin = {top: 50, right: 50, bottom: 50, left: 50},
     width = 2000 - margin.left - margin.right,
-    height = 2000 - margin.top - margin.bottom, // Making height equal to width for a more centered square area
+    height = 2000 - margin.top - margin.bottom, 
     innerRadius = 180,
-    outerRadius = Math.min(width, height) / 5 ; // The outerRadius should be half of the width or height, whichever is smaller
+    outerRadius = Math.min(width, height) / 5 ; 
 
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -44,8 +44,8 @@ var svg = d3.select("body").append("svg")
 d3.csv("full-data.csv").then(function(data) {
   var years = ['1997', '1998', '1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021'];
   //var years = Object.keys(data[0]).slice(1); // Exclude the 'Country Name' column
-  var selectedYear = years[0]; // Set initial selected year
-  console.log(selectedYear);
+  var selectedYear = years[0]; 
+  
 
   var yearContainer = d3.select("body")
     .append("div")
@@ -61,33 +61,30 @@ d3.csv("full-data.csv").then(function(data) {
     .enter().append("option")
     .text(function(d) { return d; });
 
-  // Create checkboxes for each country
   var countrySelectionDiv = d3.select("body").append("div")
     .classed("container", true);
   var selectAllCheckbox = countrySelectionDiv.append("input")
     .attr("type", "checkbox")
     .attr("id", "selectAllCountries")
-    .attr("checked", true) // Initially checked
+    .attr("checked", true) 
     .on("change", function() {
         var isChecked = this.checked;
-        // Update individual checkboxes
         d3.selectAll("input[name='countryCheckbox']").each(function() {
             this.checked = isChecked;
         });
-        updateGraph(); // Update the graph when selection changes
+        updateGraph(); 
     });
 
 countrySelectionDiv.append("label").text("Select All");
 
-// Create checkboxes for each individual country
 data.forEach(function(d) {
     countrySelectionDiv.append("input")
         .attr("type", "checkbox")
         .attr("name", "countryCheckbox")
         .attr("value", d['Country Name'])
-        .attr("checked", true) // Initially checked
+        .attr("checked", true) 
         .on("change", function() {
-            updateGraph(); // Update the graph when individual checkboxes change
+            updateGraph(); 
         });
     countrySelectionDiv.append("label").text(d['Country Name']);
     countrySelectionDiv.append("br");
@@ -96,10 +93,63 @@ data.forEach(function(d) {
 
 
 function updateGraph() {
-  svg.selectAll(".bar, .bar2").remove();
-  selectedYear = select.node().value; // Update selected year from dropdown
+  
+  svg.selectAll(".bar, .bar2,.bar3,.bar4,.bar5,.bar6").remove();
+  selectedYear = select.node().value;
+  console.log(selectedYear);
+  function calculateRange(data, column) {
+    console.log(data); // Check the entire data object
+    console.log(data.map(d => d[column])); 
+    var values = data.map(function(d) { return parseFloat(d[column]); })
+                      .filter(val => val !== -1000 && !isNaN(val));
+    
+    if (values.length === 0) {
+        console.log("No valid numeric values found in the dataset for column " + column);
+        return [NaN, NaN, NaN]; // Return NaN for all statistics
+    }
 
-  var colorScale = d3.scaleSequentialLog(t => d3.interpolatePuBuGn(t))  // ... (the rest of your code above remains unchanged)
+    var min = Math.min(...values);
+    var max = Math.max(...values);
+    var sum = values.reduce((acc, val) => acc + val, 0);
+    var mean = sum / values.length;
+
+    console.log('mi' + min, 'me' + mean, 'ma' + max);
+    return [min, mean, max];
+}
+
+
+
+
+var colorScale = d3.scaleSequentialLog(t => d3.interpolatePuBuGn(t));
+var rangeGdp = calculateRange(data, selectedYear + '_gdp');
+
+var colorScalegdp = d3.scaleLinear()
+    .domain([rangeGdp[0], rangeGdp[1], rangeGdp[2]])
+    .range(["red", "white", "green"]);
+
+var rangeLe = calculateRange(data, selectedYear + '_le');
+
+var colorScalele = d3.scaleLinear()
+    .domain([rangeLe[0], rangeLe[1], rangeLe[2]])
+    .range(["red", "white", "green"]);
+
+var rangeGini = calculateRange(data, selectedYear + '_gini');
+
+var colorScalegini = d3.scaleLinear()
+    .domain([rangeGini[0], rangeGini[1], rangeGini[2]])
+    .range(["red", "white", "green"]);
+
+var rangeHappy = calculateRange(data, selectedYear + '_happ');
+
+var colorScalehappy = d3.scaleLinear()
+    .domain([rangeHappy[0], rangeHappy[1], rangeHappy[2]])
+    .range(["red", "white", "green"]);
+
+var rangeFree = calculateRange(data, selectedYear + '_free');
+
+var colorScalefree = d3.scaleLinear()
+    .domain([rangeFree[0], rangeFree[1], rangeFree[2]])
+    .range(["red", "white", "green"]);
 
   var selectedCountries = [];
   d3.selectAll("input[name='countryCheckbox']:checked").each(function() {
@@ -111,7 +161,10 @@ function updateGraph() {
       country: d['Country Name'],
       value: +d[selectedYear+'_wom'],
       le: +d[selectedYear+'_le'],
-      gdp: +d[selectedYear+'_gdp']
+      gdp: +d[selectedYear+'_gdp'],
+      gini: +d[selectedYear+'_gini'],
+      happy: +d[selectedYear+'_happ'],
+      free: +d[selectedYear+'_free'],
     }));
 
   // Sort data by value descending
@@ -138,27 +191,42 @@ filteredData.forEach(function(d) {
   var numBars = filteredData.length;
 
   filteredData.sort((a, b) => d3.ascending(a.value, b.value));
-  
-  var x1 = d3.scaleBand()
-    .range([0, 2 * Math.PI])
-    .align(0)
-    .padding(0.1)
-    .domain(filteredData.map(function(d) { return d.country; }));
-
-  var y1 = d3.scaleLinear()
-    .range([145, 180])
-    .domain([0, maxValue]);
-
-    
   var innerRadius2 = 160;
-    
-  var arc2 = d3.arc()
-    .innerRadius(innerRadius2)
-    .outerRadius(d =>y1(0.0005)) // Use max to prevent negative values from creating inner radius bars
-    .startAngle(d =>x1(d.country))
-    .endAngle(d =>x1(d.country) +x1.bandwidth()) // Use the bandwidth for the bar width
-    .padAngle(0.01)
-    .padRadius(innerRadius2);
+  function calculateInnerRadius(index) {
+    // Adjust the formula as needed for your layout
+    return innerRadius2 - (index * 20); // Adjust the increment to control the spacing between sets of bars
+}
+
+// Define scales, arcs, and inner radii for each set of bars
+var arcs = [];
+var xs = [];
+var ys = [];
+
+// Loop through the number of sets of bars you have
+for (var i = 0; i < 5; i++) {
+    // Define x, y, and arc based on the index
+    var x = d3.scaleBand()
+        .range([0, 2 * Math.PI])
+        .align(0)
+        .padding(0.1)
+        .domain(filteredData.map(function(d) { return d.country; }));
+
+    var y = d3.scaleLinear()
+        .range([145, 180]) // Adjust the range as needed
+        .domain([0, maxValue]);
+
+    var arc = d3.arc()
+        .innerRadius(calculateInnerRadius(i)) // Calculate inner radius dynamically
+        .outerRadius(calculateInnerRadius(i) + (180 - 145) -50) // Adjust the value or scale as needed
+        .startAngle(d => x(d.country))
+        .endAngle(d => x(d.country) + x.bandwidth())
+        .padAngle(0.01)
+        .padRadius(calculateInnerRadius(i)); // Calculate pad radius dynamically
+
+    xs.push(x);
+    ys.push(y);
+    arcs.push(arc);
+}
 
   var x = d3.scaleBand()
     .range([0, 2 * Math.PI])
@@ -169,14 +237,14 @@ filteredData.forEach(function(d) {
   var y = d3.scaleLinear()
     .range([innerRadius, outerRadius])
     .domain([0, maxValue]);
-  // Sort data by value ascending to ensure proper layering
+
 
 
   var arc = d3.arc()
     .innerRadius(innerRadius)
-    .outerRadius(d => y(Math.max(d.value, 0))) // Use max to prevent negative values from creating inner radius bars
+    .outerRadius(d => y(Math.max(d.value, 0))) 
     .startAngle(d => x(d.country))
-    .endAngle(d => x(d.country) + x.bandwidth()) // Use the bandwidth for the bar width
+    .endAngle(d => x(d.country) + x.bandwidth()) 
     .padAngle(0.01)
     .padRadius(innerRadius);
 
@@ -188,11 +256,9 @@ filteredData.forEach(function(d) {
         .attr("class", "bar")
         .attr("d", arc)
         .style("fill", function(d){
-        console.log("Data value: " + d.value + ", Color: " + colorScale(d.value)); // Log the data value and corresponding color
         return colorScale(d.value);
     });
 
-    // Apply transition to update bars smoothly
     bars.transition()
         .duration(1000)
         .attrTween("d", function(d) {
@@ -209,7 +275,7 @@ filteredData.forEach(function(d) {
 
 bars.on("mouseover", function(event, d) {
         tooltip.style("visibility", "visible")
-            .text(d.country + " : " + d.value + '% women in parliament'); // Set the text of the tooltip as the data value
+            .text(d.country + " : " + d.value + '% women in parliament');
     })
     .on("mousemove", function(event, d) {
         tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");
@@ -224,34 +290,36 @@ bars.on("mouseover", function(event, d) {
     .enter()
     .append("path")
     .attr("class", "bar2")
-    .attr("d", arc2)
+    .attr("d", arcs[0])
     .style("fill", function(d){
         if (d.gdp === -1000) {
-            return "red";
+            return "grey";
         } else {
-
-            console.log("Data value: " + d.gdp + ", Color: " + colorScale(d.gdp*0.0005)); 
-            return colorScale(d.gdp*0.0005);
+            return colorScalegdp(d.gdp);
         }
     });
 
     bars2.transition()
     .duration(500)
-    .style("fill", "red")
+    .style("fill", "grey")
     .transition()
     .duration(500)
     .style("fill", function(d) {
       if (d.gdp === -1000) {
-            return "red";
+            return "grey";
         } else {
-            console.log("Data value: " + d.gdp + ", Color: " + colorScale(d.gdp*0.0005)); 
-            return colorScale(d.gdp*0.0005);
+            return colorScalegdp(d.gdp);
         }
     });
 
     bars2.on("mouseover", function(event, d) {
-        tooltip.style("visibility", "visible")
-            .text(d.country + " GDP : " + d.gdp + ' $'); // Set the text of the tooltip as the data value
+        var tooltipText = d.country;
+        if (d.gdp === -1000) {
+            tooltipText += " GDP : Value missing";
+        } else {
+            tooltipText += " GDP : " + d.gdp + ' $' ;
+        }
+        tooltip.style("visibility", "visible").text(tooltipText);
     })
     .on("mousemove", function(event, d) {
         tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");
@@ -259,6 +327,189 @@ bars.on("mouseover", function(event, d) {
     .on("mouseout", function() {
         tooltip.style("visibility", "hidden");
     });
+
+
+    var bars3 = svg.selectAll(".bar3")
+    .data(filteredData)
+    .enter()
+    .append("path")
+    .attr("class", "bar3")
+    .attr("d", arcs[1])
+    .style("fill", function(d){
+        if (d.le === -1000) {
+            return "grey";
+        } else {
+
+            return colorScalele(d.e);
+        }
+    });
+
+    bars3.transition()
+    .duration(500)
+    .style("fill", "grey")
+    .transition()
+    .duration(500)
+    .style("fill", function(d) {
+      if (d.le === -1000) {
+            return "grey";
+        } else {
+            return colorScalele(d.le);
+        }
+    });
+
+    bars3.on("mouseover", function(event, d) {
+        var tooltipText = d.country;
+        if (d.le === -1000) {
+            tooltipText += " life expectancy : Value missing";
+        } else {
+            tooltipText += " life expectancy: " + d.le +" years";
+        }
+        tooltip.style("visibility", "visible").text(tooltipText);
+    })
+    .on("mousemove", function(event, d) {
+        tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");
+    })
+    .on("mouseout", function() {
+        tooltip.style("visibility", "hidden");
+    });
+
+
+    var bars4 = svg.selectAll(".bar4")
+    .data(filteredData)
+    .enter()
+    .append("path")
+    .attr("class", "bar4")
+    .attr("d", arcs[2])
+    .style("fill", function(d){
+        if (d.gini === -1000) {
+            return "grey";
+        } else {
+
+            return colorScalegini(d.gini);
+        }
+    });
+
+    bars4.transition()
+    .duration(500)
+    .style("fill", "grey")
+    .transition()
+    .duration(500)
+    .style("fill", function(d) {
+      if (d.gini === -1000) {
+            return "grey";
+        } else {
+            return colorScalegini(d.gini);
+        }
+    });
+
+    bars4.on("mouseover", function(event, d) {
+        var tooltipText = d.country;
+        if (d.gini === -1000) {
+            tooltipText += " Gini index: Value missing";
+        } else {
+            tooltipText += " Gini index : " + d.gini;
+        }
+        tooltip.style("visibility", "visible").text(tooltipText);
+    })
+    .on("mousemove", function(event, d) {
+        tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");
+    })
+    .on("mouseout", function() {
+        tooltip.style("visibility", "hidden");
+    });
+
+
+
+    var bars5 = svg.selectAll(".bar5")
+    .data(filteredData)
+    .enter()
+    .append("path")
+    .attr("class", "bar5")
+    .attr("d", arcs[3])
+    .style("fill", function(d){
+        if (d.happy == NaN || d.happy === -1000) {
+            return "grey";
+        } else {
+
+            return colorScalehappy(d.happy);
+        }
+    });
+
+    bars5.transition()
+    .duration(500)
+    .style("fill", "grey")
+    .transition()
+    .duration(500)
+    .style("fill", function(d) {
+      if (d.happy === -1000) {
+            return "grey";
+        } else {
+            return colorScalehappy(d.happy);
+        }
+    });
+
+    bars5.on("mouseover", function(event, d) {
+        var tooltipText = d.country;
+        if (d.happy === -1000) {
+            tooltipText += " happiness index : Value missing";
+        } else {
+            tooltipText += " happiness index : " + d.happy;
+        }
+        tooltip.style("visibility", "visible").text(tooltipText);
+    })
+    .on("mousemove", function(event, d) {
+        tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");
+    })
+    .on("mouseout", function() {
+        tooltip.style("visibility", "hidden");
+    });
+
+
+
+    var bars6 = svg.selectAll(".bar6")
+    .data(filteredData)
+    .enter()
+    .append("path")
+    .attr("class", "bar6")
+    .attr("d", arcs[4])
+    .style("fill", function(d){
+        if (d.free === -1000) {
+            return "grey";
+        } else {
+
+            return colorScalefree(d.free);
+        }
+    });
+
+    bars6.transition()
+    .duration(500)
+    .style("fill", "grey")
+    .transition()
+    .duration(500)
+    .style("fill", function(d) {
+      if (d.free === -1000) {
+            return "grey";
+        } else {
+            return colorScalefree(d.free);
+        }
+    });
+
+    bars6.on("mouseover", function(event, d) {
+        var tooltipText = d.country;
+        if (d.free === -1000) {
+            tooltipText += " freedom of speech index : Value missing";
+        } else {
+            tooltipText += " freedom of speech : " + d.free;
+        }
+        tooltip.style("visibility", "visible").text(tooltipText);
+    })
+    .on("mousemove", function(event, d) {
+        tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");
+    })
+    .on("mouseout", function() {
+        tooltip.style("visibility", "hidden");
+    });
+
 
 
   
