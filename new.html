@@ -137,6 +137,8 @@ filteredData.forEach(function(d) {
 
   var numBars = filteredData.length;
 
+  filteredData.sort((a, b) => d3.ascending(a.value, b.value));
+  
   var x1 = d3.scaleBand()
     .range([0, 2 * Math.PI])
     .align(0)
@@ -147,7 +149,6 @@ filteredData.forEach(function(d) {
     .range([145, 180])
     .domain([0, maxValue]);
 
-    filteredData.sort((a, b) => d3.ascending(a.value, b.value));
     
   var innerRadius2 = 160;
     
@@ -169,7 +170,7 @@ filteredData.forEach(function(d) {
     .range([innerRadius, outerRadius])
     .domain([0, maxValue]);
   // Sort data by value ascending to ensure proper layering
-  filteredData.sort((a, b) => d3.ascending(a.value, b.value));
+
 
   var arc = d3.arc()
     .innerRadius(innerRadius)
@@ -218,9 +219,7 @@ bars.on("mouseover", function(event, d) {
     });
 
 
-
-    // bar chart with varying colors
-    var bars2 = svg.selectAll(".bar2")
+  var bars2 = svg.selectAll(".bar2")
     .data(filteredData)
     .enter()
     .append("path")
@@ -231,7 +230,7 @@ bars.on("mouseover", function(event, d) {
             return "red";
         } else {
 
-            console.log("Data value: " + d.gdp + ", Color: " + colorScale(d.gdp*0.001)); 
+            console.log("Data value: " + d.gdp + ", Color: " + colorScale(d.gdp*0.0005)); 
             return colorScale(d.gdp*0.0005);
         }
     });
@@ -245,8 +244,7 @@ bars.on("mouseover", function(event, d) {
       if (d.gdp === -1000) {
             return "red";
         } else {
-
-            console.log("Data value: " + d.gdp + ", Color: " + colorScale(d.gdp*0.001)); 
+            console.log("Data value: " + d.gdp + ", Color: " + colorScale(d.gdp*0.0005)); 
             return colorScale(d.gdp*0.0005);
         }
     });
