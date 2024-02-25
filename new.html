@@ -373,7 +373,7 @@
 
             bars.on("mouseover", function(event, d) {
                     tooltip.style("visibility", "visible")
-                        .text("Value: " + d.value + '% women in parliament');
+                        .text(d.country + " : " + d.value + '% women in parliament');
                 })
                 .on("mousemove", function(event, d) {
                     tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");
@@ -616,6 +616,7 @@
                 .data(filteredData) 
                 .enter()
                 .append("text")
+                .style("fill", "white")
                 .attr("text-anchor", "middle")
                 // .text(function(d) { return d.country; })
                 // .attr("x", function(d) { 
