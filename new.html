@@ -610,41 +610,36 @@
               
                 var labelOffset = 100; 
 
-            svg.selectAll("text").transition().duration(1000).style("opacity", 0).remove();
-            svg.append("g")
-                .selectAll("text")
-                .data(filteredData) 
-                .enter()
-                .append("text")
-                .style("fill", "white")
-                .attr("text-anchor", "middle")
-                // .text(function(d) { return d.country; })
-                // .attr("x", function(d) { 
-                //     return (y(Math.max(d.value, 0)) + labelOffset) * Math.cos(x(d.country) + x.bandwidth() / 2 - Math.PI / 2); 
-                // })
-                // .attr("y", function(d) { 
-                //     return (y(Math.max(d.value, 0)) + labelOffset) * Math.sin(x(d.country) + x.bandwidth() / 2 - Math.PI / 2); 
-                // })
-                // .attr("text-anchor", function(d) {
-                //     return (x(d.country) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "end" : "start";
-                // })
-                .attr("transform", function(d) {
+                svg.selectAll("text").transition().duration(1000).style("opacity", 0).remove();
+svg.append("g")
+    .selectAll("text")
+    .data(filteredData)
+    .enter()
+    .append("text")
+    .style("fill", "white")
+    .attr("text-anchor", "middle")
+    .attr("transform", function(d) {
+        var angle = x(d.country) + x.bandwidth() / 2;
+        var radius = y(d.value) + labelOffset;
+        var xPosition = radius * Math.cos(angle - Math.PI / 2);
+        var yPosition = radius * Math.sin(angle - Math.PI / 2);
+        var angleDegrees = angle * 180 / Math.PI - 90;
 
-                  var angle = x(d.country) + x.bandwidth() / 2; 
-                  var angleDegrees = (angle * 180 / Math.PI) - 90; 
-                  var radius = y(d.value) + labelOffset; 
+        if (angleDegrees > 90 && angleDegrees <= 270) {
+            angleDegrees += 180;
+            yPosition += 7;
+            xPosition += 7;
+        }
 
-                  // Calculate position with the updated radius
-                  var xPosition = radius * Math.cos(angle - Math.PI / 2);
-                  var yPosition = radius * Math.sin(angle - Math.PI / 2);
+        return "translate(" + xPosition + "," + yPosition + ") rotate(" + angleDegrees + ")";
+    })
+    .text(function(d) { return d.country; })
+    .style("opacity", 0)
+    .transition()
+    .duration(1000)
+    .style("opacity", 1);
 
-                  return "translate(" + xPosition + "," + yPosition + ") rotate(" + angleDegrees + ")";
-                })
-                .text(function(d) { return d.country; })
-                .style("opacity", 0)
-                .transition()
-                .duration(1000)
-                .style("opacity", 1);
+
                 //.style("fill", "#ffffff");
 
 
