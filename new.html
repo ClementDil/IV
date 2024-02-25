@@ -203,6 +203,7 @@
             function updateGraph() {
   
               svg.selectAll(".bar, .bar2,.bar3,.bar4,.bar5,.bar6").remove();
+              svg.selectAll("text").transition().duration(1000).style("opacity", 0).remove();
               selectedYear = select.node().value;
               console.log(selectedYear);
               function calculateRange(data, column) {
@@ -610,7 +611,6 @@
               
                 var labelOffset = 100; 
 
-                svg.selectAll("text").transition().duration(1000).style("opacity", 0).remove();
 svg.append("g")
     .selectAll("text")
     .data(filteredData)
