@@ -157,7 +157,7 @@
                 .enter().append("option")
                 .text(function(d) { return d; });
 
-              // Create checkboxes for each country
+
               var countrySelectionDiv = d3.select("body").append("div")
                 .classed("containercountry", true);
               var selectAllCheckbox = countrySelectionDiv.append("input")
@@ -170,33 +170,29 @@
                     d3.selectAll("input[name='countryCheckbox']").each(function() {
                         this.checked = isChecked;
                     });
-                    updateGraph(); // Update the graph when selection changes
+                    updateGraph();
                 });
 
-            countrySelectionDiv.append("label").text("Select All");
+            countrySelectionDiv.append("label").text("Select All").style("color", "white");
 
-            // // Create checkboxes for each individual country
+
             data.forEach(function(d) {
             //   d3.csv("full-data-comma.csv").then(function(data) {
-            //     // Iterate over the data
             //     data.forEach(function(d) {
-            //       // Iterate over each property in the object
             //       for (var prop in d) {
-            //         // If the value is -1000, replace it with a specific value or format
             //         if (d[prop] == -1000) {
             //           d[prop] = "Missing Value"; // Replace -1000 with "Missing Value"
             //         }
             //       }
             //     });
-            //     // Continue with your code to represent the data
             //   });
                 countrySelectionDiv.append("input")
                     .attr("type", "checkbox")
                     .attr("name", "countryCheckbox")
                     .attr("value", d['Country Name'])
-                    .attr("checked", true) // Initially checked
+                    .attr("checked", true) 
                     .on("change", function() {
-                        updateGraph(); // Update the graph when individual checkboxes change
+                        updateGraph(); 
                     });
                 countrySelectionDiv.append("label").text(d['Country Name']).style("color", "#ffffff");
                 countrySelectionDiv.append("br");
@@ -210,14 +206,14 @@
               selectedYear = select.node().value;
               console.log(selectedYear);
               function calculateRange(data, column) {
-                console.log(data); // Check the entire data object
+                console.log(data);
                 console.log(data.map(d => d[column])); 
                 var values = data.map(function(d) { return parseFloat(d[column]); })
                                   .filter(val => val !== -1000 && !isNaN(val));
                 
                 if (values.length === 0) {
                     console.log("No valid numeric values found in the dataset for column " + column);
-                    return [NaN, NaN, NaN]; // Return NaN for all statistics
+                    return [NaN, NaN, NaN]; 
                 }
 
                 var min = Math.min(...values);
@@ -278,24 +274,19 @@
                   free: +d[selectedYear+'_free'],
                 }));
 
-              // Sort data by value descending
               filteredData.sort((a, b) => b.value - a.value);
 
-              // Calculate mean and standard deviation
             var mean = d3.mean(filteredData, function(d) { return d.value; });
             var std = d3.deviation(filteredData, function(d) { return d.value; });
 
-            // Scale data using z-score normalization
             filteredData.forEach(function(d) {
                 d.normalizedValue = (d.value - mean) / std;
             });
 
-            // Use normalizedValue for visualization
 
 
 
               
-              // Determine the minimum and maximum values after sorting
               var minValue = filteredData[filteredData.length - 1].value;
               var maxValue = filteredData[0].value;
 
@@ -304,18 +295,14 @@
               filteredData.sort((a, b) => d3.ascending(a.value, b.value));
                 var innerRadius2 = 160;
                 function calculateInnerRadius(index) {
-                  // Adjust the formula as needed for your layout
-                  return innerRadius2 - (index * 20); // Adjust the increment to control the spacing between sets of bars
+                  return innerRadius2 - (index * 20); 
               }
 
-              // Define scales, arcs, and inner radii for each set of bars
               var arcs = [];
               var xs = [];
               var ys = [];
 
-              // Loop through the number of sets of bars you have
               for (var i = 0; i < 5; i++) {
-                  // Define x, y, and arc based on the index
                 var x = d3.scaleBand()
                 .range([0, 2 * Math.PI])
                 .align(0)
@@ -323,16 +310,16 @@
                 .domain(filteredData.map(function(d) { return d.country; }));
 
                 var y = d3.scaleLinear()
-                  .range([145, 180]) // Adjust the range as needed
+                  .range([145, 180])
                   .domain([0, maxValue]);
 
                 var arc = d3.arc()
-                  .innerRadius(calculateInnerRadius(i)) // Calculate inner radius dynamically
-                  .outerRadius(calculateInnerRadius(i) + (180 - 145) -50) // Adjust the value or scale as needed
+                  .innerRadius(calculateInnerRadius(i)) 
+                  .outerRadius(calculateInnerRadius(i) + (180 - 145) -50)
                   .startAngle(d => x(d.country))
                   .endAngle(d => x(d.country) + x.bandwidth())
                   .padAngle(0.01)
-                  .padRadius(calculateInnerRadius(i)); // Calculate pad radius dynamically
+                  .padRadius(calculateInnerRadius(i)); 
 
                 xs.push(x);
                 ys.push(y);
@@ -351,9 +338,9 @@
 
               var arc = d3.arc()
                 .innerRadius(innerRadius)
-                .outerRadius(d => y(Math.max(d.value, 0))) // Use max to prevent negative values from creating inner radius bars
+                .outerRadius(d => y(Math.max(d.value, 0))) 
                 .startAngle(d => x(d.country))
-                .endAngle(d => x(d.country) + x.bandwidth()) // Use the bandwidth for the bar width
+                .endAngle(d => x(d.country) + x.bandwidth()) 
                 .padAngle(0.01)
                 .padRadius(innerRadius);
 
@@ -365,11 +352,11 @@
                     .attr("class", "bar")
                     .attr("d", arc)
                     .style("fill", function(d){
-                    console.log("Data value: " + d.value + ", Color: " + colorScale(d.value)); // Log the data value and corresponding color
+                    console.log("Data value: " + d.value + ", Color: " + colorScale(d.value));
                     return colorScale(d.value);
                 });
 
-                // Apply transition to update bars smoothly
+
                 bars.transition()
                     .duration(1000)
                     .attrTween("d", function(d) {
@@ -386,7 +373,7 @@
 
             bars.on("mouseover", function(event, d) {
                     tooltip.style("visibility", "visible")
-                        .text("Value: " + d.value + '% women in parliament'); // Set the text of the tooltip as the data value
+                        .text("Value: " + d.value + '% women in parliament');
                 })
                 .on("mousemove", function(event, d) {
                     tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");
@@ -621,7 +608,7 @@
                     tooltip.style("visibility", "hidden");
                 });
               
-                var labelOffset = 100; // Increase or adjust this value to move the labels further out
+                var labelOffset = 100; 
 
             svg.selectAll("text").transition().duration(1000).style("opacity", 0).remove();
             svg.append("g")
@@ -641,10 +628,10 @@
                 //     return (x(d.country) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "end" : "start";
                 // })
                 .attr("transform", function(d) {
-                  // Calculate the angle for each label
-                  var angle = x(d.country) + x.bandwidth() / 2; // Midpoint of the bar
-                  var angleDegrees = (angle * 180 / Math.PI) - 90; // Convert to degrees, adjust for label orientation
-                  var radius = y(d.value) + labelOffset; // Add labelOffset to distance from center to end of the bar
+
+                  var angle = x(d.country) + x.bandwidth() / 2; 
+                  var angleDegrees = (angle * 180 / Math.PI) - 90; 
+                  var radius = y(d.value) + labelOffset; 
 
                   // Calculate position with the updated radius
                   var xPosition = radius * Math.cos(angle - Math.PI / 2);
@@ -668,10 +655,8 @@
 
             }
 
-            // Initial graph render
             updateGraph();
 
-            // ... (the rest of your code below remains unchanged)
 
               // Append the labels
               // var labelPadding = 10; // Adjust as needed for label spacing from the bars
