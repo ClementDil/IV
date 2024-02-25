@@ -208,7 +208,7 @@ filteredData.forEach(function(d) {
 
 bars.on("mouseover", function(event, d) {
         tooltip.style("visibility", "visible")
-            .text("Value: " + d.value); // Set the text of the tooltip as the data value
+            .text(d.country + " : " + d.value + '% women in parliament'); // Set the text of the tooltip as the data value
     })
     .on("mousemove", function(event, d) {
         tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");
@@ -218,24 +218,56 @@ bars.on("mouseover", function(event, d) {
     });
 
 
+
     // bar chart with varying colors
-  svg.selectAll(".bar2")
+    var bars2 = svg.selectAll(".bar2")
     .data(filteredData)
     .enter()
     .append("path")
     .attr("class", "bar2")
     .attr("d", arc2)
-    .transition()
-    .duration(1000)
     .style("fill", function(d){
-        console.log("Data value: " + d.le + ", Color: " + colorScale(d.le*0.05)); // Log the data value and corresponding color
-        return colorScale(d.le*0.05);
+        if (d.gdp === -1000) {
+            return "red";
+        } else {
+
+            console.log("Data value: " + d.gdp + ", Color: " + colorScale(d.gdp*0.001)); 
+            return colorScale(d.gdp*0.0005);
+        }
     });
+
+    bars2.transition()
+    .duration(500)
+    .style("fill", "red")
+    .transition()
+    .duration(500)
+    .style("fill", function(d) {
+      if (d.gdp === -1000) {
+            return "red";
+        } else {
+
+            console.log("Data value: " + d.gdp + ", Color: " + colorScale(d.gdp*0.001)); 
+            return colorScale(d.gdp*0.0005);
+        }
+    });
+
+    bars2.on("mouseover", function(event, d) {
+        tooltip.style("visibility", "visible")
+            .text(d.country + " GDP : " + d.gdp + ' $'); // Set the text of the tooltip as the data value
+    })
+    .on("mousemove", function(event, d) {
+        tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");
+    })
+    .on("mouseout", function() {
+        tooltip.style("visibility", "hidden");
+    });
+
+
   
     var labelOffset = 100; // Increase or adjust this value to control the distance of labels from the bars
 
 
-svg.selectAll("text").transition().duration(500).style("opacity", 0).remove();
+svg.selectAll("text").transition().duration(1000).style("opacity", 0).remove();
 
 svg.append("g")
   .selectAll("text")
@@ -258,7 +290,7 @@ svg.append("g")
   .text(function(d) { return d.country; })
   .style("opacity", 0)
   .transition()
-  .duration(500)
+  .duration(1000)
   .style("opacity", 1);
 
 
