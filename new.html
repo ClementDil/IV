@@ -90,30 +90,28 @@
     <p>To what extent does the presence of women in high political spheres correlate
       with a country's economic status and health indicators ?
       </p>
-      <br>
-      <br>
 
 
       <div class="container">
         <div class="questions">
           <div class="question">
             <div class="box">WHAT</div>
-            <h2>The visualisations represent the proportion of women in leadership positions in politics and its correlation with GPD growth and Life Expectancy.</h2>
+            <h2>The visualisations represent the proportion of women in countries parliaments and display the corresponding prosperity and well being indicators for each country.</h2>
           </div>
           <div class="question">
             <div class="box">WHO</div>
-            <h2>Teachers and students who might think women presence in politics is a relevant indicator of how a counry is doing. They might have prior knowledge about this topic.</h2>
+            <h2>Teachers and students who want to know whether or not women presence in politics is a relevant indicator of how a country is doing, and people who want to know what makes a better leadership. The audience might have prior knowledge and opinion about this topic.</h2>
           </div>
         </div>
 
         <div class="questions">
           <div class="question">
               <div class="box">WHY</div>
-              <h2>Gender representation in politics can play pivot role in any countries development, thus affecting everyone.</h2>
+              <h2>Gender representation in politics can affect the way decisions are taken. Having women in a government can also be an indicator that population leaders represent the population more accurately.</h2>
           </div>
           <div class="question">
               <div class="box">HOW</div>
-              <h2>2 visualisation. One showing the proportion of women in parliament with other indicators, and another is showing the GDP of different countries.</h2>
+              <h2>One visualization showing in a circular bar chart the proportion of women in each country's parliament. Inside this bar chart, we represent with color gradients the value of each indicator of the country's economy and well-being. </h2>
           </div>
         </div>
 
@@ -127,16 +125,16 @@
             <script>
 
             var margin = {top: 50, right: 50, bottom: 50, left: 50},
-              width = 2000 - margin.left - margin.right,
-              height = 2000 - margin.top - margin.bottom, 
+              width = window.innerWidth - margin.left - margin.right,
+              height = window.innerHeight - margin.top - margin.bottom, 
               innerRadius = 180,
-              outerRadius = Math.min(width, height) / 5 ; 
+              outerRadius = Math.min(width, height) / 2 ; 
               
             var svg = d3.select("body").append("svg")
                 .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
+                .attr("height", 2*height + margin.top + margin.bottom)
                 .append("g")
-                .attr("transform", "translate(" + (width / 2) + "," + (height / 2 + 300) + ")");
+                .attr("transform", "translate(" + (margin.left + width / 2) + "," + (margin.top + height / 2 + 150) + ")");
 
             d3.csv("full-data.csv").then(function(data) {
               var years = ['1997', '1998', '1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021'];
