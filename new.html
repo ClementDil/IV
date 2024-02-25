@@ -64,6 +64,23 @@
       justify-content: center;
       align-items: center;
     }
+    .bar { fill: steelblue; }
+    .bar2 { fill: rgb(180, 114, 70); }
+    .containercountry {
+      position: absolute;
+      top: 20px; 
+      left: 15%;
+      transform: translateX(-50%);
+      overflow-y: auto; 
+      max-height: 300px; 
+    }
+
+    .year-container {
+       position: absolute;
+        top: 20px; 
+        left: 30%; 
+        transform: translateX(-25%); 
+    }
 </style>
 </head>
 
@@ -142,7 +159,7 @@
 
               // Create checkboxes for each country
               var countrySelectionDiv = d3.select("body").append("div")
-                .classed("container", true);
+                .classed("containercountry", true);
               var selectAllCheckbox = countrySelectionDiv.append("input")
                 .attr("type", "checkbox")
                 .attr("id", "selectAllCountries")
