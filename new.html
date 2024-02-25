@@ -97,7 +97,6 @@ data.forEach(function(d) {
 
 function updateGraph() {
   svg.selectAll(".bar, .bar2").remove();
-  svg.selectAll("text").remove();
   selectedYear = select.node().value; // Update selected year from dropdown
 
   var colorScale = d3.scaleSequentialLog(t => d3.interpolatePuBuGn(t))  // ... (the rest of your code above remains unchanged)
@@ -235,6 +234,9 @@ bars.on("mouseover", function(event, d) {
   
     var labelOffset = 100; // Increase or adjust this value to control the distance of labels from the bars
 
+
+svg.selectAll("text").transition().duration(500).style("opacity", 0).remove();
+
 svg.append("g")
   .selectAll("text")
   .data(filteredData)
@@ -253,7 +255,11 @@ svg.append("g")
 
     return "translate(" + xPosition + "," + yPosition + ") rotate(" + angleDegrees + ")";
   })
-  .text(function(d) { return d.country; });
+  .text(function(d) { return d.country; })
+  .style("opacity", 0)
+  .transition()
+  .duration(500)
+  .style("opacity", 1);
 
 
 
