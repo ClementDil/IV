@@ -354,7 +354,7 @@
                     .attr("d", arc)
                     .style("fill", function(d){
                     console.log("Data value: " + d.value + ", Color: " + colorScale(d.value));
-                    return colorScale(d.value);
+                    return colorScale(d.value*0.5);
                 });
 
 
