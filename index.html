@@ -243,7 +243,7 @@
             var rangeGini = calculateRange(data, selectedYear + '_gini');
 
             var colorScalegini = d3.scaleLinear()
-                .domain([rangeGini[0], rangeGini[1], rangeGini[2]])
+                .domain([1-rangeGini[2], 1-rangeGini[1], 1-rangeGini[0]])
                 .range(["red", "white", "green"]);
 
             var rangeHappy = calculateRange(data, selectedYear + '_happ');
@@ -482,7 +482,7 @@
                         return "grey";
                     } else {
 
-                        return colorScalegini(d.gini);
+                        return colorScalegini(1-d.gini);
                     }
                 });
 
@@ -495,7 +495,7 @@
                   if (d.gini === -1000) {
                         return "grey";
                     } else {
-                        return colorScalegini(d.gini);
+                        return colorScalegini(1-d.gini);
                     }
                 });
 
